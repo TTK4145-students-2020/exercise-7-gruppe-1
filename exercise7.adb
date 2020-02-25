@@ -20,6 +20,20 @@ procedure exercise7 is
         begin
             ------------------------------------------
             -- PART 3: Complete the exit protocol here
+
+            Should_Commit := not Aborted;   -- If Count_failed, we dont commit
+
+            if Finished'Count = N-1 then -- Skjønner ikke denne: Teller ned?
+              Finished_Gate_Open := True;
+              Put_Line (" GROND ! ");
+
+            elsif Finished'Count = 0 then --
+              Finished_Gate_Open := False;
+              Aborted := False;
+              Put_Line ("BARRICADE THE GATES! ");
+            end if;
+
+
             ------------------------------------------
         end Finished;
 
@@ -32,17 +46,28 @@ procedure exercise7 is
         begin
             return Should_Commit;
         end Commit;
-        
+
     end Transaction_Manager;
 
 
 
-    
     function Unreliable_Slow_Add (x : Integer) return Integer is
     Error_Rate : Constant := 0.15;  -- (between 0 and 1)
+
+    rand_num : Float := Random(Gen);
     begin
         -------------------------------------------
         -- PART 1: Create the transaction work here
+
+          if rand_num > Error_Rate then
+            -- correct behaviour
+            delay Duration(4.0);
+            return x + 10;
+          else
+            -- faulty behaviour
+            delay Duration(0.4);
+            raise Count_Failed;
+          end if;
         -------------------------------------------
     end Unreliable_Slow_Add;
 
@@ -62,9 +87,17 @@ procedure exercise7 is
             Round_Num := Round_Num + 1;
 
             ---------------------------------------
-            -- PART 2: Do the transaction work here             
+            -- PART 2: Do the transaction work here
+            begin
+              Num := Unreliable_Slow_Add(Num);
+            exception
+              when Count_Failed =>
+                Manager.Signal_Abort;
+              end;
+
+            Manager.Finished;
             ---------------------------------------
-            
+
             if Manager.Commit = True then
                 Put_Line ("  Worker" & Integer'Image(Initial) & " comitting" & Integer'Image(Num));
             else
@@ -73,6 +106,7 @@ procedure exercise7 is
                              " to" & Integer'Image(Prev));
                 -------------------------------------------
                 -- PART 2: Roll back to previous value here
+                Num := Prev;
                 -------------------------------------------
             end if;
 
@@ -91,4 +125,3 @@ procedure exercise7 is
 begin
     Reset(Gen); -- Seed the random number generator
 end exercise7;
-
