@@ -23,11 +23,11 @@ procedure exercise7 is
 
             Should_Commit := not Aborted;   -- If Count_failed, we dont commit
 
-            if Finished'Count = N-1 then -- Skjønner ikke denne: Teller ned?
+            if Finished'Count = N-1 then -- There is only 1 here
               Finished_Gate_Open := True;
               Put_Line (" GROND ! ");
 
-            elsif Finished'Count = 0 then --
+            elsif Finished'Count = 0 then -- Everyone is here
               Finished_Gate_Open := False;
               Aborted := False;
               Put_Line ("BARRICADE THE GATES! ");
@@ -89,10 +89,10 @@ procedure exercise7 is
             ---------------------------------------
             -- PART 2: Do the transaction work here
             begin
-              Num := Unreliable_Slow_Add(Num);
+              Num := Unreliable_Slow_Add(Num);    -- try this
             exception
               when Count_Failed =>
-                Manager.Signal_Abort;
+                Manager.Signal_Abort;             -- notify manager if failed
               end;
 
             Manager.Finished;
